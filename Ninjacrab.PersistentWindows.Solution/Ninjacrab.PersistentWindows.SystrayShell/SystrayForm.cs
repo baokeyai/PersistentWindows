@@ -15,6 +15,11 @@ namespace Ninjacrab.PersistentWindows.SystrayShell
 
         private void DiagnosticsToolStripMenuItemClickHandler(object sender, EventArgs e)
         {
+            DisplayDiagnosticsViewer();
+        }
+
+        public void DisplayDiagnosticsViewer()
+        {
             bool shouldShow = false;
             if (this.MainView == null ||
                 this.MainView.IsClosed)

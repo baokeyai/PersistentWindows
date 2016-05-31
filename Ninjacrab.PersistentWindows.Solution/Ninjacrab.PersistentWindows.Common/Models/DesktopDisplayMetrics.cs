@@ -11,19 +11,18 @@ namespace Ninjacrab.PersistentWindows.Common.Models
             DesktopDisplayMetrics metrics = new DesktopDisplayMetrics();
 
             var displays = Display.GetDisplays();
-            int displayId = 0;
             foreach (var display in displays)
             {
-                metrics.SetMonitor(displayId++, display);
+                metrics.SetMonitor(display.DeviceName, display);
             }
             return metrics;
         }
 
-        private Dictionary<int, Display> monitorResolutions = new Dictionary<int, Display>();
+        private Dictionary<string, Display> monitorResolutions = new Dictionary<string, Display>();
 
         public int NumberOfDisplays { get { return monitorResolutions.Count; } }
 
-        public void SetMonitor(int id, Display display)
+        public void SetMonitor(string id, Display display)
         {
             if (!monitorResolutions.ContainsKey(id) ||
                 monitorResolutions[id].ScreenWidth != display.ScreenWidth ||
@@ -42,6 +41,19 @@ namespace Ninjacrab.PersistentWindows.Common.Models
                 keySegments.Add(string.Format("[Id:{0} Loc:{1}x{2} Res:{3}x{4}]", entry.Key, entry.Value.Left, entry.Value.Top, entry.Value.ScreenWidth, entry.Value.ScreenHeight));
             }
             key = string.Join(",", keySegments);
+        }
+
+        public DesktopDisplayDifference Compare(DesktopDisplayMetrics other)
+        {
+            DesktopDisplayDifference difference = DesktopDisplayDifference.Same;
+
+            if (this.monitorResolutions.Count != other.monitorResolutions.Count)
+            {
+                difference |= DesktopDisplayDifference.MonitorCount;
+            }
+
+            return difference;
+
         }
 
         private string key;

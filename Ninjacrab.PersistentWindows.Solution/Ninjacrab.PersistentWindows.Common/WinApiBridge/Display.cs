@@ -7,6 +7,7 @@ namespace Ninjacrab.PersistentWindows.Common.WinApiBridge
 {
     public class Display
     {
+        public string DeviceName { get; internal set; }
         public int ScreenWidth { get; internal set; }
         public int ScreenHeight { get; internal set; }
         public int Left { get; internal set; }
@@ -26,6 +27,7 @@ namespace Ninjacrab.PersistentWindows.Common.WinApiBridge
                     if (success)
                     {
                         Display display = new Display();
+                        display.DeviceName  = monitorInfo.DeviceName;
                         display.ScreenWidth = monitorInfo.Monitor.Width;
                         display.ScreenHeight = monitorInfo.Monitor.Height;
                         display.Left = monitorInfo.Monitor.Left;

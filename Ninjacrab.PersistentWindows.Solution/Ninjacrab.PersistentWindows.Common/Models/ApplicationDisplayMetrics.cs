@@ -9,6 +9,8 @@ namespace Ninjacrab.PersistentWindows.Common.Models
         public int ProcessId { get; set; }
         public string ApplicationName { get; set; }
         public WindowPlacement WindowPlacement { get; set; }
+        public uint Style{ get; set; }
+        public uint ExtendedStyle { get; set; }
 
         public string Key
         {
@@ -20,7 +22,9 @@ namespace Ninjacrab.PersistentWindows.Common.Models
             return this.WindowPlacement.NormalPosition.Left == other.WindowPlacement.NormalPosition.Left
                 && this.WindowPlacement.NormalPosition.Top == other.WindowPlacement.NormalPosition.Top
                 && this.WindowPlacement.NormalPosition.Width == other.WindowPlacement.NormalPosition.Width
-                && this.WindowPlacement.NormalPosition.Height == other.WindowPlacement.NormalPosition.Height;
+                && this.WindowPlacement.NormalPosition.Height == other.WindowPlacement.NormalPosition.Height
+                && this.Style == other.Style
+                && this.ExtendedStyle == other.ExtendedStyle;
         }
 
         public override string ToString()

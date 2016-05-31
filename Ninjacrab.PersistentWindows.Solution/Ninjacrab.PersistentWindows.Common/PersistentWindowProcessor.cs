@@ -221,6 +221,7 @@ namespace Ninjacrab.PersistentWindows.Common
                 }
 
                 var appWindows = CaptureWindowsOfInterest();
+                int winCount = appWindows.Count();
 
                 List<string> changeLog = new List<string>();
                 List<ApplicationDisplayMetrics> apps = new List<ApplicationDisplayMetrics>();
@@ -270,10 +271,9 @@ namespace Ninjacrab.PersistentWindows.Common
         private IEnumerable<SystemWindow> CaptureWindowsOfInterest()
         {
             return SystemWindow.AllToplevelWindows
-                                .Where(row => row.Parent.HWnd.ToInt64() == 0
-                                    && !string.IsNullOrEmpty(row.Title)
-                                    && !row.Title.Equals("Program Manager")
-                                    && row.Visible);
+                                .Where(row => row.Parent.Process.Id == 0
+                                && row.Visible
+                                && row.Movable);
         }
 
         private bool AddOrUpdateWindow(string displayKey, SystemWindow window, out ApplicationDisplayMetrics applicationDisplayMetric)
@@ -286,7 +286,9 @@ namespace Ninjacrab.PersistentWindows.Common
                 HWnd = window.HWnd,
                 ApplicationName = window.Process.ProcessName,
                 ProcessId = window.Process.Id,
-                WindowPlacement = windowPlacement
+                WindowPlacement = windowPlacement,
+                Style = (uint)window.Style,
+                ExtendedStyle = (uint)window.ExtendedStyle
             };
 
             bool updated = false;
@@ -344,8 +346,9 @@ namespace Ninjacrab.PersistentWindows.Common
                     string applicationKey = string.Format("{0}-{1}", window.HWnd.ToInt64(), window.Process.ProcessName);
                     if (monitorApplications[displayKey].ContainsKey(applicationKey))
                     {
+                        var app = monitorApplications[displayKey][applicationKey];
                         // looks like the window is still here for us to restore
-                        WindowPlacement windowPlacement = monitorApplications[displayKey][applicationKey].WindowPlacement;
+                        WindowPlacement windowPlacement = app.WindowPlacement;
 
                         if (windowPlacement.ShowCmd == ShowWindowCommands.Maximize)
                         {
@@ -353,15 +356,20 @@ namespace Ninjacrab.PersistentWindows.Common
                             // the window thinks it's maxxed, but does not eat all the real estate. So we'll temporarily unmaximize then
                             // re-apply that
                             windowPlacement.ShowCmd = ShowWindowCommands.Normal;
-                            User32.SetWindowPlacement(monitorApplications[displayKey][applicationKey].HWnd, ref windowPlacement);
+                            User32.SetWindowPlacement(app.HWnd, ref windowPlacement);
                             windowPlacement.ShowCmd = ShowWindowCommands.Maximize;
                         }
-                        var success = User32.SetWindowPlacement(monitorApplications[displayKey][applicationKey].HWnd, ref windowPlacement);
+                        int result = 0;
+                        var success = User32.SetWindowPlacement(app.HWnd, ref windowPlacement);
                         if(!success)
                         {
                             string error = new Win32Exception(Marshal.GetLastWin32Error()).Message;
                             Log.Error(error);
                         }
+                        result = User32.SetWindowLong(app.HWnd, User32.GWL_EXSTYLE, app.ExtendedStyle);
+                        result = User32.SetWindowLong(app.HWnd, User32.GWL_STYLE, app.Style);
+
+
                         Log.Info("SetWindowPlacement({0} [{1}x{2}]-[{3}x{4}]) - {5}",
                             window.Process.ProcessName,
                             windowPlacement.NormalPosition.Left,

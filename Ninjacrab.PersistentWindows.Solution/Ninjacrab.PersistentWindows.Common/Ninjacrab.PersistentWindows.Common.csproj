@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ninjacrab.PersistentWindows.Common</RootNamespace>
     <AssemblyName>Ninjacrab.PersistentWindows.Common</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Diagnostics\Log.cs" />
     <Compile Include="Models\ApplicationDisplayMetrics.cs" />
+    <Compile Include="Models\DesktopDisplayDifference.cs" />
     <Compile Include="Models\DesktopDisplayMetrics.cs" />
     <Compile Include="Models\WindowPositionInfo.cs" />
     <Compile Include="PersistentWindowProcessor.cs" />
@@ -63,6 +65,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ninjacrab.PersistentWindows.WinApiWrapper\Ninjacrab.PersistentWindows.WinApiWrapper.vcxproj">
+      <Project>{25d3c4cd-3408-4b83-ace8-33f5ec3aad7c}</Project>
+      <Name>Ninjacrab.PersistentWindows.WinApiWrapper</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
