@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using ManagedWinapi.Hooks;
-using ManagedWinapi.Windows;
 using Microsoft.Win32;
 using Ninjacrab.PersistentWindows.Common.Diagnostics;
 using Ninjacrab.PersistentWindows.Common.Models;
@@ -18,7 +16,6 @@ namespace Ninjacrab.PersistentWindows.Common
         // read and update this from a config file eventually
         private int AppsMovedThreshold = 4;
         private DesktopDisplayMetrics lastMetrics = null;
-        private Hook windowProcHook;
 
         public void Start()
         {
@@ -50,11 +47,6 @@ namespace Ninjacrab.PersistentWindows.Common
                         break;
                 }
             };
-
-            //windowProcHook = new Hook();
-            //windowProcHook.Type = HookType.WH_CALLWNDPROC;
-            //windowProcHook.Callback += GlobalWindowProcCallback;
-            //windowProcHook.StartHook();
         }
 
         int GlobalWindowProcCallback(int code, IntPtr wParam, IntPtr lParam, ref bool callNext)
@@ -134,7 +126,7 @@ namespace Ninjacrab.PersistentWindows.Common
 
             if (appMetrics == null)
             {
-                var newAppWindow = SystemWindow.AllToplevelWindows
+                var newAppWindow = AppWindow.AllToplevelWindows
                     .FirstOrDefault(row => row.Parent.HWnd.ToInt64() == 0 
                         && !string.IsNullOrEmpty(row.Title) 
                         && !row.Title.Equals("Program Manager")
@@ -268,15 +260,15 @@ namespace Ninjacrab.PersistentWindows.Common
             }
         }
 
-        private IEnumerable<SystemWindow> CaptureWindowsOfInterest()
+        private IEnumerable<AppWindow> CaptureWindowsOfInterest()
         {
-            return SystemWindow.AllToplevelWindows
+            return AppWindow.AllToplevelWindows
                                 .Where(row => row.Parent.Process.Id == 0
                                 && row.Visible
                                 && row.Movable);
         }
 
-        private bool AddOrUpdateWindow(string displayKey, SystemWindow window, out ApplicationDisplayMetrics applicationDisplayMetric)
+        private bool AddOrUpdateWindow(string displayKey, AppWindow window, out ApplicationDisplayMetrics applicationDisplayMetric)
         {
             WindowPlacement windowPlacement = new WindowPlacement();
             User32.GetWindowPlacement(window.HWnd, ref windowPlacement);
@@ -384,10 +376,6 @@ namespace Ninjacrab.PersistentWindows.Common
 
         public void Dispose()
         {
-            if (windowProcHook != null)
-            {
-                windowProcHook.Dispose();
-            }
         }
     }
 }

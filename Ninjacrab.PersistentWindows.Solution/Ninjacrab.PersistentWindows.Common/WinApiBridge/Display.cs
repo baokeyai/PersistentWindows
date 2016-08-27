@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using ManagedWinapi.Windows;
 
 namespace Ninjacrab.PersistentWindows.Common.WinApiBridge
 {
@@ -19,7 +18,7 @@ namespace Ninjacrab.PersistentWindows.Common.WinApiBridge
             List<Display> displays = new List<Display>();
 
             User32.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
-                delegate(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
+                delegate(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)
                 {
                     MonitorInfo monitorInfo = new MonitorInfo();
                     monitorInfo.StructureSize = Marshal.SizeOf(monitorInfo);

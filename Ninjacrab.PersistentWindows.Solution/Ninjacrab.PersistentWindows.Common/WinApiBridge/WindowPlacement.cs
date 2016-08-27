@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using ManagedWinapi.Windows;
 
 namespace Ninjacrab.PersistentWindows.Common.WinApiBridge
 {
@@ -27,17 +26,17 @@ namespace Ninjacrab.PersistentWindows.Common.WinApiBridge
         /// <summary>
         /// The coordinates of the window's upper-left corner when the window is minimized.
         /// </summary>
-        public POINT MinPosition;
+        public Point MinPosition;
 
         /// <summary>
         /// The coordinates of the window's upper-left corner when the window is maximized.
         /// </summary>
-        public POINT MaxPosition;
+        public Point MaxPosition;
 
         /// <summary>
         /// The window's coordinates when the window is in the restored position.
         /// </summary>
-        public RECT NormalPosition;
+        public Rect NormalPosition;
 
         /// <summary>
         /// Gets the default (empty) value.
