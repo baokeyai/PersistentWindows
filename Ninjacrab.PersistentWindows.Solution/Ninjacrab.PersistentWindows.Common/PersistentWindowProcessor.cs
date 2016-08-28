@@ -126,7 +126,7 @@ namespace Ninjacrab.PersistentWindows.Common
 
             if (appMetrics == null)
             {
-                var newAppWindow = AppWindow.AllToplevelWindows
+                var newAppWindow = AppWindow.GetWindows()
                     .FirstOrDefault(row => row.Parent.HWnd.ToInt64() == 0 
                         && !string.IsNullOrEmpty(row.Title) 
                         && !row.Title.Equals("Program Manager")

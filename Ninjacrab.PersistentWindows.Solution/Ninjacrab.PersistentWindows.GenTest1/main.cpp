@@ -1,7 +1,10 @@
 #pragma region include and define
 #include <windows.h>
 #include <shellapi.h>
+#include <io.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #ifdef UNICODE
 #define stringcopy wcscpy
@@ -17,110 +20,18 @@
 #pragma region constants and globals
 UINT WM_TASKBARCREATED = 0;
 
+HHOOK globalHook;
 HWND g_hwnd;
 HMENU g_menu;
+HMODULE hInstance = 0;
 
 NOTIFYICONDATA g_notifyIconData;
 #pragma endregion
 
-// define the functions
-void InitNotifyIconData();
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int iCmdShow)
-{
-    TCHAR className[] = TEXT("Ninjacrab.PersistentWindows");
-
-    // I want to be notified when windows explorer
-    // crashes and re-launches the taskbar.  the WM_TASKBARCREATED
-    // event will be sent to my WndProc() AUTOMATICALLY whenever
-    // explorer.exe starts up and fires up the taskbar again.
-    // So its great, because now, even if explorer crashes,
-    // I have a way to re-add my system tray icon in case
-    // the app is already in the "minimized" (hidden) state.
-    // if we did not do this an explorer crashed, the application
-    // would remain inaccessible!!
-    WM_TASKBARCREATED = RegisterWindowMessageA("TaskbarCreated");
-
-#pragma region add a console
-    // add a console, because I love consoles.
-    // To disconnect the console, just comment out
-    // the next 3 lines of code.
-    //// AllocConsole();
-    //// AttachConsole( GetCurrentProcessId() ) ;
-    //// freopen( "CON", "w", stdout ) ;
+#pragma region Functions from our Core lib
+void(*InstallCoreHook)(void);
+void(*DisposeCoreHook)(void);
 #pragma endregion
-
-#pragma region get window up
-    WNDCLASSEX wnd = { 0 };
-
-    wnd.hInstance = hInstance;
-    wnd.lpszClassName = className;
-    wnd.lpfnWndProc = WndProc;
-    wnd.style = CS_HREDRAW | CS_VREDRAW;
-    wnd.cbSize = sizeof(WNDCLASSEX);
-
-    wnd.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wnd.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-    wnd.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wnd.hbrBackground = (HBRUSH)COLOR_APPWORKSPACE;
-
-    if (!RegisterClassEx(&wnd))
-    {
-        FatalAppExit(0, TEXT("Couldn't register window class!"));
-    }
-
-    g_hwnd = CreateWindowEx(
-        0, 
-        className,
-        TEXT("Ninjacrab PersistentWindows"),
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 
-        CW_USEDEFAULT,
-        400, 400,
-        NULL, 
-        NULL,
-        hInstance, 
-        NULL
-    );
-
-    // Add the label with instruction text
-    CreateWindow(
-        TEXT("static"), 
-        TEXT("right click the system tray icon to close"), 
-        WS_CHILD | WS_VISIBLE | SS_CENTER,
-        0, 
-        0, 
-        400, 
-        400, 
-        g_hwnd, 
-        0, 
-        hInstance, 
-        NULL);
-
-    // Initialize the NOTIFYICONDATA structure once
-    InitNotifyIconData();
-
-    ShowWindow(g_hwnd, iCmdShow);
-#pragma endregion
-
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    // Once you get the quit message, before exiting the app,
-    // clean up and remove the tray icon
-    if (!IsWindowVisible(g_hwnd))
-    {
-        Shell_NotifyIcon(NIM_DELETE, &g_notifyIconData);
-    }
-
-    return msg.wParam;
-}
-
 
 #pragma region helper funcs
 // These next 2 functions are the STARS of this example.
@@ -134,9 +45,6 @@ void Minimize()
 {
     // add the icon to the system tray
     Shell_NotifyIcon(NIM_ADD, &g_notifyIconData);
-
-    // ..and hide the main window
-    ShowWindow(g_hwnd, SW_HIDE);
 }
 
 // Basically bring back the window (SHOW IT again)
@@ -144,10 +52,7 @@ void Minimize()
 void Restore()
 {
     // Remove the icon from the system tray
-    Shell_NotifyIcon(NIM_DELETE, &g_notifyIconData);
-
-    // ..and show the window
-    ShowWindow(g_hwnd, SW_SHOW);
+    // Shell_NotifyIcon(NIM_DELETE, &g_notifyIconData);
 }
 
 // Initialize the NOTIFYICONDATA structure.
@@ -187,11 +92,9 @@ void InitNotifyIconData()
     g_notifyIconData.hIcon = (HICON)LoadImage(NULL, TEXT("../Resources/Oxygen-Icons.org-Oxygen-Status-media-playlist-repeat.ico"), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
     // set the tooltip text.  must be LESS THAN 64 chars
-    stringcopy(g_notifyIconData.szTip, TEXT("PersistentWindows"));
+    stringcopy(g_notifyIconData.szTip, TEXT("Persistent Windows 1.1"));
 }
 #pragma endregion
-
-
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -231,12 +134,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 
     case WM_TRAYICON:
     {
-        printf("Tray icon notification, from %d\n", wParam);
-
         switch (wParam)
         {
         case ID_TRAY_APP_ICON:
-            printf("Its the ID_TRAY_APP_ICON.. one app can have several tray icons, ya know..\n");
+            //printf("Its the ID_TRAY_APP_ICON.. one app can have several tray icons, ya know..\n");
             break;
         }
 
@@ -250,54 +151,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         // other icon will scroll in under your mouse so when
         // the user releases the mouse, THAT OTHER ICON will
         // get the WM_LBUTTONUP command and that's quite annoying.
-        if (lParam == WM_LBUTTONUP)
+        switch (lParam)
         {
-            printf("You have restored me!\n");
-            Restore();
-        }
-        else if (lParam == WM_RBUTTONDOWN) // I'm using WM_RBUTTONDOWN here because
-        {
-            printf("Mmm.  Let's get contextual.  I'm showing you my context menu.\n");
-            // it gives the app a more responsive feel.  Some apps
-            // DO use this trick as well.  Right clicks won't make
-            // the icon disappear, so you don't get any annoying behavior
-            // with this (try it out!)
+            case WM_LBUTTONUP:
+                printf("You have restored me!\n");
+                Restore();
+                break;
 
-            // Get current mouse position.
-            POINT curPoint;
-            GetCursorPos(&curPoint);
+            case WM_RBUTTONDOWN:
+                // I'm using WM_RBUTTONDOWN here because
+                // it gives the app a more responsive feel.  Some apps
+                // DO use this trick as well.  Right clicks won't make
+                // the icon disappear, so you don't get any annoying behavior
+                // with this (try it out!)
 
-            // should SetForegroundWindow according
-            // to original poster so the popup shows on top
-            SetForegroundWindow(hwnd);
+                // Get current mouse position.
+                POINT curPoint;
+                GetCursorPos(&curPoint);
 
+                // should SetForegroundWindow according
+                // to original poster so the popup shows on top
+                SetForegroundWindow(hwnd);
 
+                // TrackPopupMenu blocks the app until TrackPopupMenu returns
+                printf("calling track\n");
+                UINT clicked = TrackPopupMenu(
+                    g_menu,
+                    TPM_RETURNCMD | TPM_NONOTIFY, // don't send me WM_COMMAND messages about this window, instead return the identifier of the clicked menu item
+                    curPoint.x,
+                    curPoint.y,
+                    0,
+                    hwnd,
+                    NULL
+                );
+                printf("returned from call to track\n");
 
-            // TrackPopupMenu blocks the app until TrackPopupMenu returns
-            printf("calling track\n");
-            UINT clicked = TrackPopupMenu(
-
-                g_menu,
-                TPM_RETURNCMD | TPM_NONOTIFY, // don't send me WM_COMMAND messages about this window, instead return the identifier of the clicked menu item
-                curPoint.x,
-                curPoint.y,
-                0,
-                hwnd,
-                NULL
-
-            );
-            printf("returned from call to track\n");
-
-
-            // Original poster's line of code.  Haven't deleted it,
-            // but haven't seen a need for it.
-            //SendMessage(hwnd, WM_NULL, 0, 0); // send benign message to window to make sure the menu goes away.
-            if (clicked == ID_TRAY_EXIT_CONTEXT_MENU_ITEM)
-            {
-                // quit the application.
-                printf("I have posted the quit message, biatch\n");
-                PostQuitMessage(0);
-            }
+                // Original poster's line of code.  Haven't deleted it,
+                // but haven't seen a need for it.
+                //SendMessage(hwnd, WM_NULL, 0, 0); // send benign message to window to make sure the menu goes away.
+                if (clicked == ID_TRAY_EXIT_CONTEXT_MENU_ITEM)
+                {
+                    // quit the application.
+                    PostQuitMessage(0);
+                }
+                break;
         }
     }
     break;
@@ -325,8 +222,112 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         printf("DESTROY!!\n");
         PostQuitMessage(0);
         break;
-
     }
 
     return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
+void AttachToConsole()
+{
+    FILE *consoleOutStream;
+    AllocConsole();
+    AttachConsole(GetCurrentProcessId());
+    freopen_s(&consoleOutStream, "CON", "w", stdout);
+}
+
+void CreateParentWindow()
+{
+    TCHAR className[] = TEXT("Ninjacrab.PersistentWindows");
+    WNDCLASSEX wnd = { 0 };
+
+    wnd.hInstance = hInstance;
+    wnd.lpszClassName = className;
+    wnd.lpfnWndProc = WndProc;
+    wnd.style = CS_HREDRAW | CS_VREDRAW;
+    wnd.cbSize = sizeof(WNDCLASSEX);
+
+    wnd.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wnd.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+    wnd.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wnd.hbrBackground = (HBRUSH)COLOR_APPWORKSPACE;
+
+    if (!RegisterClassEx(&wnd))
+    {
+        FatalAppExit(0, TEXT("Couldn't register window class!"));
+    }
+
+    g_hwnd = CreateWindowEx(
+        0,
+        className,
+        TEXT("Ninjacrab PersistentWindows"),
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        400, 400,
+        NULL,
+        NULL,
+        hInstance,
+        NULL
+    );
+}
+
+int LoadHookLibrary()
+{
+    HMODULE coreDllHandle = LoadLibrary("Ninjacrab.PersistentWindows.CoreX86.dll");
+    if (coreDllHandle == NULL) {
+        printf("The DLL could not be found.\n");
+        return -1;
+    }
+    printf("Ninjacrab.PersistentWindows.CoreX86.dll successfully loaded\n");
+    InstallCoreHook = (void(*)(void))GetProcAddress(coreDllHandle, "InstallCoreHook");
+    DisposeCoreHook = (void(*)(void))GetProcAddress(coreDllHandle, "DisposeCoreHook");
+    InstallCoreHook();
+    return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int iCmdShow)
+{
+
+    // I want to be notified when windows explorer
+    // crashes and re-launches the taskbar.  the WM_TASKBARCREATED
+    // event will be sent to my WndProc() AUTOMATICALLY whenever
+    // explorer.exe starts up and fires up the taskbar again.
+    // So its great, because now, even if explorer crashes,
+    // I have a way to re-add my system tray icon in case
+    // the app is already in the "minimized" (hidden) state.
+    // if we did not do this an explorer crashed, the application
+    // would remain inaccessible!!
+    WM_TASKBARCREATED = RegisterWindowMessageA("TaskbarCreated");
+
+#pragma region add a console
+#if _DEBUG
+    AttachToConsole();
+#endif
+#pragma endregion
+
+#pragma region get window up
+    printf("Starting\n");
+    CreateParentWindow();
+    LoadHookLibrary();
+    // Initialize the NOTIFYICONDATA structure once
+    InitNotifyIconData();
+    Minimize();
+#pragma endregion
+
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    // Once you get the quit message, before exiting the app,
+    // clean up and remove the tray icon
+    if (!IsWindowVisible(g_hwnd))
+    {
+        Shell_NotifyIcon(NIM_DELETE, &g_notifyIconData);
+    }
+
+    DisposeCoreHook();
+    return msg.wParam;
 }
