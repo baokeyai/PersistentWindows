@@ -3,6 +3,7 @@
 #include <shellapi.h>
 #include <stdio.h>
 #include <time.h>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -53,12 +54,22 @@ void CurrentTime(char* timeString)
     strftime(timeString, 64, "%H:%M:%S", &timeinfo);
 }
 
+// Not exactly the most ideal mechanism, but a brute force as I familiarize myself with this.
+void PidLog(string message)
+{
+    string fileName = "D:/PWLogs/" + to_string(GetCurrentProcessId()) + ".txt";
+    ofstream out(fileName);
+    out << message << endl;
+    out.flush();
+    out.close();
+}
+
 // our global hook
 LRESULT CALLBACK GlobalWndRetProc(int code, WPARAM wParam, LPARAM lParam)
 {
     char timeString[64];
     CurrentTime(timeString);
-    printf("[%s] code: %d wparam: %d lparam: %d \n", timeString, code, (int)wParam, (int)lParam);
+    PidLog("[" + string(timeString) + "] code: " + to_string(code) + " wparam: " + to_string(wParam) + " lparam: " + to_string(lParam));
     return CallNextHookEx(globalHook, code, wParam, lParam);
 }
 
