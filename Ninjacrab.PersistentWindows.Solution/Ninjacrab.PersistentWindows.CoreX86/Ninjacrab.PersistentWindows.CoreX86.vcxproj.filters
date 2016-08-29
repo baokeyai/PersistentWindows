@@ -15,7 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Processor.cpp">
+    <ClInclude Include="GlobalHookHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GlobalHookHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

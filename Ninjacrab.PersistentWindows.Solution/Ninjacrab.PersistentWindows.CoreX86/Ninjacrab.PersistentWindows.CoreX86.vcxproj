@@ -113,7 +113,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Processor.cpp" />
+    <ClCompile Include="GlobalHookHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GlobalHookHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

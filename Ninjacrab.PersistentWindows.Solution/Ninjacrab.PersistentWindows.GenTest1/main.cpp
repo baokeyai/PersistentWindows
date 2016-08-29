@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include "GlobalHookHandler.h"
+#include "DisplayScreen.h"
 
 #ifdef UNICODE
 #define stringcopy wcscpy
@@ -26,11 +28,6 @@ HMENU g_menu;
 HMODULE hInstance = 0;
 
 NOTIFYICONDATA g_notifyIconData;
-#pragma endregion
-
-#pragma region Functions from our Core lib
-void(*InstallCoreHook)(void);
-void(*DisposeCoreHook)(void);
 #pragma endregion
 
 #pragma region helper funcs
@@ -271,20 +268,6 @@ void CreateParentWindow()
     );
 }
 
-int LoadHookLibrary()
-{
-    HMODULE coreDllHandle = LoadLibrary("Ninjacrab.PersistentWindows.CoreX86.dll");
-    if (coreDllHandle == NULL) {
-        printf("The DLL could not be found.\n");
-        return -1;
-    }
-    printf("Ninjacrab.PersistentWindows.CoreX86.dll successfully loaded\n");
-    InstallCoreHook = (void(*)(void))GetProcAddress(coreDllHandle, "InstallCoreHook");
-    DisposeCoreHook = (void(*)(void))GetProcAddress(coreDllHandle, "DisposeCoreHook");
-    InstallCoreHook();
-    return 0;
-}
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int iCmdShow)
 {
 
@@ -299,20 +282,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int
     // would remain inaccessible!!
     WM_TASKBARCREATED = RegisterWindowMessageA("TaskbarCreated");
 
-#pragma region add a console
 #if _DEBUG
     AttachToConsole();
 #endif
-#pragma endregion
 
-#pragma region get window up
     printf("Starting\n");
     CreateParentWindow();
-    LoadHookLibrary();
+    //LoadHookLibrary();
     // Initialize the NOTIFYICONDATA structure once
     InitNotifyIconData();
     Minimize();
-#pragma endregion
+
+    DisplayScreen::RefreshDisplays();
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0))
@@ -328,6 +309,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int
         Shell_NotifyIcon(NIM_DELETE, &g_notifyIconData);
     }
 
-    DisposeCoreHook();
+    CleanGlobalHook();
     return msg.wParam;
 }
