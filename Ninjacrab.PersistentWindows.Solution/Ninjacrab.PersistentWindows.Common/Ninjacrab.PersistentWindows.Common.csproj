@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ninjacrab.PersistentWindows.Common</RootNamespace>
     <AssemblyName>Ninjacrab.PersistentWindows.Common</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -33,6 +33,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ninjacrab.BaseClassLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ninjacrab.BaseClassLibrary.1.2016.706.1092\lib\net45\Ninjacrab.BaseClassLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninjacrab.Logging, Version=1.2016.711.23394, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ninjacrab.Logging.1.2016.711.23394\lib\net461\Ninjacrab.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
     </Reference>
@@ -67,6 +73,7 @@
     <Compile Include="WinApiBridge\WindowsPosition.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -8,6 +8,7 @@
 #include "GlobalHookHandler.h"
 #include "DisplayScreen.h"
 
+using namespace System;
 #ifdef UNICODE
 #define stringcopy wcscpy
 #else
@@ -288,7 +289,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int
 
     printf("Starting\n");
     CreateParentWindow();
-    //LoadHookLibrary();
+    LoadHookLibrary();
     // Initialize the NOTIFYICONDATA structure once
     InitNotifyIconData();
     Minimize();

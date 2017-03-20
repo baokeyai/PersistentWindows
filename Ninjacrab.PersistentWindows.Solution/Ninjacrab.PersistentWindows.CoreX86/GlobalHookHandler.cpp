@@ -7,7 +7,8 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+using namespace System;
+using namespace Ninjacrab::Logging;
 
 #pragma comment(linker, "/SECTION:.SHARED,RWS")
 #pragma data_seg(".SHARED")
@@ -44,32 +45,10 @@ BOOL APIENTRY DllMain(HANDLE hModule,
     return TRUE;
 }
 
-void CurrentTime(char* timeString)
-{
-    time_t rawtime;
-    struct tm timeinfo;
-
-    time(&rawtime);
-    localtime_s(&timeinfo, &rawtime);
-    strftime(timeString, 64, "%H:%M:%S", &timeinfo);
-}
-
-// Not exactly the most ideal mechanism, but a brute force as I familiarize myself with this.
-void PidLog(string message)
-{
-    string fileName = "D:/PWLogs/" + to_string(GetCurrentProcessId()) + ".txt";
-    ofstream out(fileName);
-    out << message << endl;
-    out.flush();
-    out.close();
-}
-
 // our global hook
 LRESULT CALLBACK GlobalWndRetProc(int code, WPARAM wParam, LPARAM lParam)
 {
-    char timeString[64];
-    CurrentTime(timeString);
-    PidLog("[" + string(timeString) + "] code: " + to_string(code) + " wparam: " + to_string(wParam) + " lparam: " + to_string(lParam));
+    Logger::Info(String::Format("Code: {0} Wparam: {1} Lparam: {2}", code, wParam, lParam));
     return CallNextHookEx(globalHook, code, wParam, lParam);
 }
 

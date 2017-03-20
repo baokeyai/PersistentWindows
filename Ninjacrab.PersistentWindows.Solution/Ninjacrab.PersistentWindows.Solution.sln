@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ninjacrab.PersistentWindows.WpfShell", "Ninjacrab.PersistentWindows.WpfShell\Ninjacrab.PersistentWindows.WpfShell.csproj", "{4EA12EC8-B50F-4DEA-AA7D-85A5F4C81F83}"
 EndProject
@@ -19,6 +19,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ninjacrab.PersistentWindows.GenTest1", "Ninjacrab.PersistentWindows.GenTest1\Ninjacrab.PersistentWindows.GenTest1.vcxproj", "{D15C776F-994F-4DAB-9C16-8C7DB2704473}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ninjacrab.PersistentWindows.CoreX86", "Ninjacrab.PersistentWindows.CoreX86\Ninjacrab.PersistentWindows.CoreX86.vcxproj", "{F09C4F38-827B-4D84-BEC6-D4969A023407}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ninjacrab.PersistentWindows.CoreClr", "Ninjacrab.PersistentWindows.CoreClr\Ninjacrab.PersistentWindows.CoreClr.vcxproj", "{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,6 +102,16 @@ Global
 		{F09C4F38-827B-4D84-BEC6-D4969A023407}.Release|x64.Build.0 = Release|x64
 		{F09C4F38-827B-4D84-BEC6-D4969A023407}.Release|x86.ActiveCfg = Release|Win32
 		{F09C4F38-827B-4D84-BEC6-D4969A023407}.Release|x86.Build.0 = Release|Win32
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Debug|x64.ActiveCfg = Debug|x64
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Debug|x64.Build.0 = Debug|x64
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Debug|x86.ActiveCfg = Debug|Win32
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Debug|x86.Build.0 = Debug|Win32
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Release|Any CPU.ActiveCfg = Release|Win32
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Release|x64.ActiveCfg = Release|x64
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Release|x64.Build.0 = Release|x64
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Release|x86.ActiveCfg = Release|Win32
+		{EC67F9ED-35D2-4A34-B68E-F58772A4EA03}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
